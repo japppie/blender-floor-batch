@@ -34,21 +34,40 @@ class Floordata():
         return int(texture_count)
     
 class BlenderFloorProcessor:
-    def __init__(self, camera_name, object_name, material_name, image_location, output_location):
+    def __init__(self, camera_name, image_location, output_location):
         self.camera_name = camera_name
-        self.object_name = object_name
-        self.material_name = material_name
-        self.mat = bpy.data.materials[material_name]
-        self.nodes = self.mat.node_tree.nodes
         self.image_location = image_location
         self.output_location = output_location
 
+    def set_pattern(self, floor):
+        obj_regular = 'floor_regular'
+        mat_regular = 'floor_mat_regular'
+        obj_herringbone = 'floor_herringbone'
+        mat_herringbone = 'floor_mat_herringbone'
+        if floor.pattern in ['','recht', 'normaal', 'gewoon', 'straight', 'regular']:
+            return obj_regular, mat_regular
+        elif floor.pattern in ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']:
+            return obj_herringbone, mat_herringbone
+        else:
+            print(f'PATTERN FOR {floor.sku} NOT RECOGNIZED')
+
     def set_textures(self, floor):
+        object_name, material_name = self.set_pattern(floor)
+        mat = bpy.data.materials[material_name]
+        nodes = mat.node_tree.nodes
+        # Find the MultiTexture group node and the Reroute node
+        multi_texture_node = next((node for node in nodes if node.type == 'GROUP' and node.label == 'MultiTexGroup'), None)
+        reroute_node = nodes.get('MultiTexReroute')
+
+        if not multi_texture_node or not reroute_node:
+            print("MultiTexture group node or MultiTexReroute node not found.")
+            return
+
         for i, filename in enumerate(floor.filenames):
             node_name = f'tex{i:02}'
             image_path = os.path.join(self.image_location, filename)
 
-            node = self.nodes.get(node_name)
+            node = nodes.get(node_name)
             if node and node.type == 'TEX_IMAGE':
                 if os.path.exists(image_path):
                     new_image = bpy.data.images.load(image_path, check_existing=True)
@@ -62,8 +81,17 @@ class BlenderFloorProcessor:
             else:
                 print(f'Node {node_name} not found.')
 
+        # Connect the last texture node to the Reroute node after all textures are set
+        if len(floor.filenames) > 0 and len(multi_texture_node.outputs) >= len(floor.filenames):
+            link = mat.node_tree.links.new
+            link(multi_texture_node.outputs[len(floor.filenames) - 1], reroute_node.inputs[0])
+        else:
+            print("Not enough outputs in MultiTexture node or no textures specified.")
+
+
     def set_size(self, floor):
-        obj = bpy.data.objects.get(self.object_name)
+        object_name, material_name = self.set_pattern(floor)
+        obj = bpy.data.objects.get(object_name)
         if obj and 'GeometryNodes' in obj.modifiers:
             modifier = obj.modifiers["GeometryNodes"]
             modifier["Input_2"] = floor.size_x / 100
@@ -71,7 +99,19 @@ class BlenderFloorProcessor:
             modifier["Input_3"] = floor.size_y / 100
             modifier["Socket_3"] = floor.size_y / 100
         else:
-            print(f"Object '{self.object_name}' not found or it doesn't have a 'GeometryNodes' modifier.")
+            print(f"Object '{object_name}' not found or it doesn't have a 'GeometryNodes' modifier.")
+
+    def set_objects(self, floor):
+        regular_obj = bpy.data.objects.get('floor_regular')
+        herringbone_obj = bpy.data.objects.get('floor_herringbone')
+        if floor.pattern in ['','recht', 'normaal', 'gewoon', 'straight', 'regular']:
+            regular_obj.hide_render = False
+            herringbone_obj.hide_render = True
+        elif floor.pattern in ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']:
+            regular_obj.hide_render = True
+            herringbone_obj.hide_render = False
+        else:
+            print(f'Floor pattern for {floor.sku} not recognized' )
 
     def set_camera(self):
         camera = bpy.data.objects.get(self.camera_name)
@@ -91,6 +131,7 @@ class BlenderFloorProcessor:
         for floor in render_floordata:
             self.set_textures(floor)
             self.set_size(floor)
+            self.set_objects(floor)
             self.render_scene(floor)
 
 CSVvariations = {
