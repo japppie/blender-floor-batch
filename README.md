@@ -15,6 +15,6 @@ Make sure to make the following changes in the Floor Generator 2.0 Blendfile:
 - The 9 TEXTURE NODES in floor material should be called **tex00, tex01, tex02 ... tex08**
 
 # TO DO
-Further clean-up
 Possibly create separate settings file
+If less than 9 textures found, make sure multi texture node connects correct amount of textures
 Implement patterns and grouts
