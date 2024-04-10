@@ -40,10 +40,10 @@ class BlenderFloorProcessor:
         self.output_location = output_location
 
     def set_pattern(self, floor):
-        obj_regular = 'floor_regular'
-        mat_regular = 'floor_mat_regular'
-        obj_herringbone = 'floor_herringbone'
-        mat_herringbone = 'floor_mat_herringbone'
+        obj_regular = 'Standard_4.0+'
+        mat_regular = 'Floor_MultiTexture_Sherwood-Oak'
+        obj_herringbone = 'Herringbone'
+        mat_herringbone = 'Floor_MultiTexture_Inca-Carpenter-Oak'
         if floor.pattern in ['','recht', 'normaal', 'gewoon', 'straight', 'regular']:
             return obj_regular, mat_regular
         elif floor.pattern in ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']:
@@ -55,18 +55,27 @@ class BlenderFloorProcessor:
         object_name, material_name = self.set_pattern(floor)
         mat = bpy.data.materials[material_name]
         nodes = mat.node_tree.nodes
-        # Find the MultiTexture group node and the Reroute node
-        multi_texture_node = next((node for node in nodes if node.type == 'GROUP' and node.label == 'MultiTexGroup'), None)
-        reroute_node = nodes.get('MultiTexReroute')
 
-        if not multi_texture_node or not reroute_node:
-            print("MultiTexture group node or MultiTexReroute node not found.")
-            return
+        # Define the specific order of node names
+        node_names = [
+            "Image Texture", 
+            "Image Texture.001", 
+            "Image Texture.002", 
+            "Image Texture.003", 
+            "Image Texture.004", 
+            "Image Texture.007", 
+            "Image Texture.005", 
+            "Image Texture.008"
+        ]
 
-        for i, filename in enumerate(floor.filenames):
-            node_name = f'tex{i:02}'
+        # Ensure there are enough filenames to match the nodes
+        if len(floor.filenames) > len(node_names):
+            print(f"More filenames than expected nodes. Some textures won't be used.")
+            floor.filenames = floor.filenames[:len(node_names)]
+
+        # Loop over filenames and corresponding node names
+        for filename, node_name in zip(floor.filenames, node_names):
             image_path = os.path.join(self.image_location, filename)
-
             node = nodes.get(node_name)
             if node and node.type == 'TEX_IMAGE':
                 if os.path.exists(image_path):
@@ -81,13 +90,20 @@ class BlenderFloorProcessor:
             else:
                 print(f'Node {node_name} not found.')
 
+        # Find the MultiTexture group node and the Reroute node
+        multi_texture_node = next((node for node in nodes if node.type == 'GROUP' and node.label == 'MultiTexture'), None)
+        reroute_node = nodes.get('Reroute.001')
+
+        if not multi_texture_node or not reroute_node:
+            print("MultiTexture group node or Reroute.001 node not found.")
+            return
+
         # Connect the last texture node to the Reroute node after all textures are set
         if len(floor.filenames) > 0 and len(multi_texture_node.outputs) >= len(floor.filenames):
             link = mat.node_tree.links.new
             link(multi_texture_node.outputs[len(floor.filenames) - 1], reroute_node.inputs[0])
         else:
             print("Not enough outputs in MultiTexture node or no textures specified.")
-
 
     def set_size(self, floor):
         object_name, material_name = self.set_pattern(floor)
@@ -102,8 +118,8 @@ class BlenderFloorProcessor:
             print(f"Object '{object_name}' not found or it doesn't have a 'GeometryNodes' modifier.")
 
     def set_objects(self, floor):
-        regular_obj = bpy.data.objects.get('floor_regular')
-        herringbone_obj = bpy.data.objects.get('floor_herringbone')
+        regular_obj = bpy.data.objects.get('Standard_4.0+')
+        herringbone_obj = bpy.data.objects.get('Herringbone')
         if floor.pattern in ['','recht', 'normaal', 'gewoon', 'straight', 'regular']:
             regular_obj.hide_render = False
             herringbone_obj.hide_render = True
