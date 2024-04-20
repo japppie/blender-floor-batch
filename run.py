@@ -1,13 +1,16 @@
+# TODO: Specify the location of the local Git repo:
+github_repo_location = '/Users/gebruiker/Documents/GitHub/blender-floor-batch/'
+
 import bpy, csv, os, sys
 # TODO: Specify the location of the local Git repo:
-sys.path.append('/Users/gebruiker/Documents/GitHub/blender-floor-batch/')
+sys.path.append(github_repo_location)
 from utils.floordata import Floordata, BlenderFloorProcessor, CSVvariations
 
 # DECLARE VARIABLES
 camera_name = 'MAIN_CAMERA'
-texture_location = '/Users/gebruiker/Documents/GitHub/blender-floor-batch/textures/'
-output_location = '/Users/gebruiker/Documents/GitHub/blender-floor-batch/output/'
-csv_location = '/Users/gebruiker/Documents/GitHub/blender-floor-batch/assets/demo_floors.csv'
+texture_location = github_repo_location + 'textures/'
+output_location = github_repo_location + 'output/'
+csv_location = github_repo_location + 'assets/demo_floors.csv'
 
 def detect_column_names(header, CSVvariations):
     detected_names = {}
