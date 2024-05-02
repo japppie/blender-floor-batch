@@ -1,13 +1,14 @@
 import os, bpy
 
 class Floordata():
-    def __init__(self, sku, size, pattern, grout, suffix, image_location):
+    def __init__(self, sku, size, pattern, grout, suffix, image_location, scene):
         self.sku = sku
         self.size_x, self.size_y = self.extract_size(size)
         self.pattern = pattern
         self.grout = grout
         self.suffix = suffix
         self.filenames = []
+        self.scene = scene
         self.texture_count = self.count_textures(image_location)  # Automatically count textures
 
     def extract_size(self, size):
@@ -44,9 +45,9 @@ class BlenderFloorProcessor:
         mat_regular = 'Floor_MultiTexture_Sherwood-Oak'
         obj_herringbone = 'Herringbone'
         mat_herringbone = 'Floor_MultiTexture_Inca-Carpenter-Oak'
-        if floor.pattern in ['','recht', 'normaal', 'gewoon', 'straight', 'regular']:
+        if floor.pattern in writing_variations['laminate_regular'] or '':
             return obj_regular, mat_regular
-        elif floor.pattern in ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']:
+        elif floor.pattern in writing_variations['laminate_herringbone']:
             return obj_herringbone, mat_herringbone
         else:
             print(f'PATTERN FOR {floor.sku} NOT RECOGNIZED')
@@ -120,10 +121,10 @@ class BlenderFloorProcessor:
     def set_objects(self, floor):
         regular_obj = bpy.data.objects.get('Standard_4.0+')
         herringbone_obj = bpy.data.objects.get('Herringbone')
-        if floor.pattern in ['','recht', 'normaal', 'gewoon', 'straight', 'regular']:
+        if floor.pattern in writing_variations['laminate_regular'] or '':
             regular_obj.hide_render = False
             herringbone_obj.hide_render = True
-        elif floor.pattern in ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']:
+        elif floor.pattern in writing_variations['laminate_herringbone']:
             regular_obj.hide_render = True
             herringbone_obj.hide_render = False
         else:
@@ -150,10 +151,13 @@ class BlenderFloorProcessor:
             self.set_objects(floor)
             self.render_scene(floor)
 
-CSVvariations = {
+writing_variations = {
     'sku': ['SKU', 'product', 'article', 'skus'],
     'size': ['size', 'formaat', 'formaat (cm)'],
     'pattern': ['pattern', 'patroon', 'methode', 'legmethode', 'leg methode'],
     'grout': ['grout', 'voeg', 'groef', '2v', '4v', '2v/4v', 'voeg/groef', 'groef/voeg'],
-    'suffix': ['suffix', 'toevoeging', 'bestandsnaam']
+    'suffix': ['suffix', 'toevoeging', 'bestandsnaam'],
+    'scene': ['scene', 'set', 'lifestyle', 'life style', 'omgeving', 'kamer', 'room'],
+    'laminate_regular': ['recht', 'normaal', 'gewoon', 'straight', 'regular'],
+    'laminate_herringbone': ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']
 }
