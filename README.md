@@ -1,3 +1,7 @@
+For use in a single Blendfile, import the contents from run.py into the Blender python editor. Make sure to update the path in row 1.
+
+For use in a batch processor, run via terminal/cmd: blender --background --python run_batch.py
+
 # Short description
 Set up a render queue for multiple floors in Blender
 Using Floor Generator 2.0 by NodeCrafted https://blendermarket.com/products/floor-generator (you require a license to use the file, go buy it at Blender Market. The use of this script is free.)

@@ -157,7 +157,7 @@ writing_variations = {
     'pattern': ['pattern', 'patroon', 'methode', 'legmethode', 'leg methode'],
     'grout': ['grout', 'voeg', 'groef', '2v', '4v', '2v/4v', 'voeg/groef', 'groef/voeg'],
     'suffix': ['suffix', 'toevoeging', 'bestandsnaam'],
-    'scene': ['scene', 'set', 'lifestyle', 'life style', 'omgeving', 'kamer', 'room'],
+    'scene': ['blendfile', 'blend', 'blender', 'file', 'bestand', 'bestandsnaam', 'filename', 'file name', '.blend'],
     'laminate_regular': ['recht', 'normaal', 'gewoon', 'straight', 'regular'],
     'laminate_herringbone': ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']
 }
