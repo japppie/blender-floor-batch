@@ -10,8 +10,8 @@ class Floordata():
         self.suffix = suffix
         self.filenames = []
         self.scene = scene
-        self.texture_count = self.count_textures(image_location)  # Automatically count textures
-        self.brightness = self.calculate_brightness(self.filenames[0])
+        self.texture_count, self.filenames = self.count_textures(image_location)  # Automatically count textures
+        self.brightness = self.calculate_brightness(self.filenames)
         self.lightstrength = self.map_brightness_to_light_strength(self.brightness, light_min=4, light_max=13)
 
     def extract_size(self, size):
@@ -37,7 +37,12 @@ class Floordata():
                 # print(f"Found texture: {file}")
         return int(texture_count)
     
-    def calculate_brightness(image_path):
+    def calculate_brightness(filenames):
+        if filenames == 0:
+            image_path = ''
+        else:
+            image_path = filenames[0]
+        
         img = Image.open(image_path).convert('L')  # Convert to grayscale
         stat = ImageStat.Stat(img)
         return stat.mean[0]  # Average brightness
