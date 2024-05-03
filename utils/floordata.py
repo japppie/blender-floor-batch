@@ -1,4 +1,5 @@
 import os, bpy
+from PIL import Image, ImageStat
 
 class Floordata():
     def __init__(self, sku, size, pattern, grout, suffix, image_location, scene):
@@ -10,6 +11,8 @@ class Floordata():
         self.filenames = []
         self.scene = scene
         self.texture_count = self.count_textures(image_location)  # Automatically count textures
+        self.brightness = self.calculate_brightness(self.filenames[0])
+        self.lightstrength = self.map_brightness_to_light_strength(self.brightness, light_min=4, light_max=13)
 
     def extract_size(self, size):
         size = size.replace(' x ', 'x').replace(',', '.')
@@ -34,6 +37,15 @@ class Floordata():
                 # print(f"Found texture: {file}")
         return int(texture_count)
     
+    def calculate_brightness(image_path):
+        img = Image.open(image_path).convert('L')  # Convert to grayscale
+        stat = ImageStat.Stat(img)
+        return stat.mean[0]  # Average brightness
+
+    def map_brightness_to_light_strength(brightness, light_min, light_max):
+        normalized_brightness = brightness / 255 # Normalize brightness from 0 to 255 to 0 to 1
+        return light_max - normalized_brightness * (light_max - light_min) # Inverse mapping: lower brightness -> higher light strength
+
 class BlenderFloorProcessor:
     def __init__(self, camera_name, image_location, output_location):
         self.camera_name = camera_name
@@ -137,6 +149,14 @@ class BlenderFloorProcessor:
         else:
             print(f'{self.camera_name} not found or is not a camera object.')
 
+    def set_light(self, floor): # Update the light strength in Blender
+        light_object = bpy.data.objects.get('MAIN_LIGHT')
+        if light_object and light_object.type == 'LIGHT':
+            light_object.data.energy = floor.light_strength
+            print(f"Set MAIN_LIGHT strength to {floor.light_strength} based on texture brightness {floor.brightness}")
+        else:
+            print("MAIN_LIGHT not found or is not a light object.")
+
     def render_scene(self, floor):
         self.set_camera()
         full_output_path = os.path.join(self.output_location, floor.sku + floor.suffix)
@@ -149,6 +169,7 @@ class BlenderFloorProcessor:
             self.set_textures(floor)
             self.set_size(floor)
             self.set_objects(floor)
+            self.set_light(floor)
             self.render_scene(floor)
 
 writing_variations = {

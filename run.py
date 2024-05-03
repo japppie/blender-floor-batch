@@ -2,6 +2,7 @@
 github_repo_location = '/Users/gebruiker/Documents/GitHub/blender-floor-batch/'
 
 import bpy, csv, os, sys
+from PIL import Image, ImageStat
 sys.path.append(github_repo_location)
 from utils.floordata import Floordata, BlenderFloorProcessor, writing_variations
 
