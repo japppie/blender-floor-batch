@@ -71,13 +71,13 @@ class BlenderFloorProcessor:
 
         # Define the specific order of node names
         node_names = [
-            "Image Texture", 
             "Image Texture.001", 
             "Image Texture.002", 
             "Image Texture.003", 
             "Image Texture.004", 
-            "Image Texture.007", 
             "Image Texture.005", 
+            "Image Texture.006", 
+            "Image Texture.007", 
             "Image Texture.008"
         ]
 
