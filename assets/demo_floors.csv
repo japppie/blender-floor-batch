@@ -1,43 +1,35 @@
-SKU,type,range,kleur,voeg/groef,formaat (cm),patroon,suffix,setting,blendfile,"origineel nummer
+SKU,type,range,kleur,formaat (cm),voeg/groef,patroon,suffix,setting,blendfile,"origineel nummer
 (niet nodig)",SCAN,RENDER
-470068,laminaat,mondain,wit geolied eiken,2v,"128,6 x 19,4",recht,_v01,,,34018,TO DO,TO DO
-470069,laminaat,mondain,kasteel eiken,2v,"128,6 x 19,4",recht,_v01,,,34019,TO DO,TO DO
-470063,laminaat,confort,zwart eiken,0,"128,6 x 19,4",recht,_v01,,,34627,TO DO,TO DO
-548316,laminaat,mondain,licht gekalkt eiken,2v,"128,6 x 19,4",recht,_v01,,,42241,TO DO,TO DO
-582162,laminaat,confort,wit geolied eiken,0,"128,6 x 19,4",recht,_v01,,,44892,TO DO,TO DO
-122241,laminaat,confort,vintage oud eiken,0,"128,6 x 19,4",recht,_v01,,,51645,TO DO,TO DO
-164156,,,,,,recht,_v01,,,,TO DO,TO DO
-164158,,,,,,recht,_v01,,,,TO DO,TO DO
-164159,,,,,,recht,_v01,,,,TO DO,TO DO
-164160,,,,,,recht,_v01,,,,TO DO,TO DO
-164161,,,,,,recht,_v01,,,,TO DO,TO DO
-164162,,,,,,recht,_v01,,,,TO DO,TO DO
-164163,,,,,,recht,_v01,,,,TO DO,TO DO
-164164,,,,,,recht,_v01,,,,TO DO,TO DO
-164165,,,,,,recht,_v01,,,,TO DO,TO DO
-164166,,,,,,recht,_v01,,,,TO DO,TO DO
-164167,,,,,,recht,_v01,,,,TO DO,TO DO
-164168,,,,,,recht,_v01,,,,TO DO,TO DO
-164170,,,,,,recht,_v01,,,,TO DO,TO DO
-164171,,,,,,recht,_v01,,,,TO DO,TO DO
-164172,,,,,,recht,_v01,,,,TO DO,TO DO
-164173,,,,,,recht,_v01,,,,TO DO,TO DO
-555378,laminaat,,Wit eiken,4v,,recht,_v01,,,5114110519,TO DO,TO DO
-557208,laminaat,,Grijs eiken,4v,,recht,_v01,,,5114390019,TO DO,TO DO
-557209,laminaat,,Eiken beige,4v,,recht,_v01,,,5114390219,TO DO,TO DO
-582169,laminaat,signature,Eik gerookt wit olie,2v,,recht,_v01,,,5210386219,TO DO,TO DO
-482512,laminaat,signature,Wit geolied eik,2v,,recht,_v01,,,5210416419,TO DO,TO DO
-509398,laminaat,signature,Nat. geloliede eik,2v,,recht,_v01,,,5210416619,TO DO,TO DO
-548322,laminaat,signature,Warm bruin,2v,,recht,_v01,,,5210478319,TO DO,TO DO
-548323,laminaat,signature,Doorleefd grijs,2v,,recht,_v01,,,5210478619,TO DO,TO DO
-582168,laminaat,signatuur,Wit eiken,2v,,recht,_v01,,,5210478719,TO DO,TO DO
-207277,laminaat,bastion,antraciet,,,recht,_v01,,,,TO DO,TO DO
-207278,laminaat,bastion,beton grijs,,,recht,_v01,,,,TO DO,TO DO
-,,,,,,,,,,TO DO,"100,00%","100,00%"
-,,,,,,,,,,TO DO,33 / 33,33 / 33
-,,,,,,,,,,IN PROGRESS,"0,00%","0,00%"
-,,,,,,,,,,IN PROGRESS,0 / 33,0 / 33
-,,,,,,,,,,REVIEW,"0,00%","0,00%"
-,,,,,,,,,,REVIEW,0 / 33,0 / 33
-,,,,,,,,,,COMPLETED,"0,00%","0,00%"
-,,,,,,,,,,COMPLETED,0 / 33,0 / 33
+470068,laminaat,mondain,wit geolied eiken,"128,6 x 19,4",2v,recht,_v01,set 1,set_01.blend,34018,COMPLETED,TO DO
+470069,laminaat,mondain,kasteel eiken,"128,6 x 19,4",2v,recht,_v01,set 2,set_02.blend,34019,COMPLETED,TO DO
+470063,laminaat,confort,zwart eiken,"128,6 x 19,4",0,recht,_v01,set 2,set_02.blend,34627,COMPLETED,TO DO
+548316,laminaat,mondain,licht gekalkt eiken,"128,6 x 19,4",2v,recht,_v01,set 4,set_04.blend,42241,COMPLETED,TO DO
+582162,laminaat,confort,wit geolied eiken,"128,6 x 19,4",0,recht,_v01,set 4,set_04.blend,44892,COMPLETED,TO DO
+122241,laminaat,confort,vintage oud eiken,"128,6 x 19,4",0,recht,_v01,set 1,set_01.blend,51645,COMPLETED,TO DO
+164156,pvc,volera,grijs eiken,"122,2 x 22,9",4v,recht,_v01,set 2,set_02.blend,,COMPLETED,TO DO
+164158,pvc,volera,naturel eiken,"122,2 x 22,9",4v,recht,_v01,set 2,set_02.blend,,COMPLETED,TO DO
+164159,pvc,volera,smokey eiken,"122 x 22,9",4v,recht,_v01,set 3,set_03.blend,,COMPLETED,TO DO
+164160,pvc,volera,donker naturel eiken,"122 x 22,9",4v,recht,_v01,set 1,set_01.blend,,COMPLETED,TO DO
+164161,pvc,volera,grijs beton,"122 x 22,9",4v,recht,_v01,set 4,set_04.blend,,COMPLETED,TO DO
+164162,pvc,lazio,naturel eiken,"122 x 30,5",4v,recht,_v01,set 4,set_04.blend,,COMPLETED,TO DO
+164163,pvc,lazio,lichtgrijs eiken,"122 x 30,5",4v,recht,_v01,set 3,set_03.blend,,COMPLETED,TO DO
+164164,pvc,lazio,beige eiken,"122 x 30,5",4v,recht,_v01,set 2,set_02.blend,,COMPLETED,TO DO
+164165,pvc,lazio,smokey eiken,"122 x 30,5",4v,recht,_v01,set 1,set_01.blend,,COMPLETED,TO DO
+164166,pvc,atrani,naturel eiken,75 x 15,4v,visgraat,_v01,set 4,set_04.blend,,COMPLETED,TO DO
+164167,pvc,atrani,lichtgrijs eiken,75 x 15,4v,visgraat,_v01,set 1,set_01.blend,,COMPLETED,TO DO
+164168,pvc,atrani,beige eiken,75 x 15,4v,visgraat,_v01,set 2,set_02.blend,,COMPLETED,TO DO
+164170,pvc,burano,marmer grijs,"61 x 30,5",4v,recht,_v01,set 2,set_02.blend,,COMPLETED,TO DO
+164171,pvc,burano,marmer antraciet,"61 x 30,5",4v,recht,_v01,set 1,set_01.blend,,COMPLETED,TO DO
+164172,pvc,burano,grijs beton,"61 x 30,5",4v,recht,_v01,set 3,set_03.blend,,COMPLETED,TO DO
+164173,pvc,burano,lichtgrijs beton,"61x 30,5",4v,recht,_v01,set 4,set_04.blend,,COMPLETED,TO DO
+555378,laminaat,,Wit eiken,"138 x 24,4",4v,recht,_v01,set 1,set_01.blend,5114110519,COMPLETED,TO DO
+557208,laminaat,,Grijs eiken,"138 x 24,4",4v,recht,_v01,set 1,set_01.blend,5114390019,COMPLETED,TO DO
+557209,laminaat,,Eiken beige,"138 x 24,4",4v,recht,_v01,set 4,set_04.blend,5114390219,COMPLETED,TO DO
+582169,laminaat,signature,Eik gerookt wit olie,"138 x 24,4",2v,recht,_v01,set 4,set_04.blend,5210386219,COMPLETED,TO DO
+482512,laminaat,signature,Wit geolied eik,"138 x 24,4",2v,recht,_v01,set 3,set_03.blend,5210416419,COMPLETED,TO DO
+509398,laminaat,signature,Nat. geloliede eik,"138 x 24,4",2v,recht,_v01,set 2,set_02.blend,5210416619,COMPLETED,TO DO
+548322,laminaat,signature,Warm bruin,"138 x 24,4",2v,recht,_v01,set 2,set_02.blend,5210478319,COMPLETED,TO DO
+548323,laminaat,signature,Doorleefd grijs,"138 x 24,4",2v,recht,_v01,set 3,set_03.blend,5210478619,COMPLETED,TO DO
+582168,laminaat,signatuur,Wit eiken,"138 x 24,4",2v,recht,_v01,set 3,set_03.blend,5210478719,COMPLETED,TO DO
+207277,pvc,bastion,antraciet,"60,4 x 28",0,recht,_v01,set 1,set_01.blend,,COMPLETED,TO DO
+207278,pvc,bastion,beton grijs,"60,4 x 28",0,recht,_v01,set 3,set_03.blend,,COMPLETED,TO DO

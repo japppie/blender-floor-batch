@@ -2,17 +2,14 @@ import os, bpy
 from PIL import Image, ImageStat
 
 class Floordata():
-    def __init__(self, sku, size, pattern, grout, suffix, image_location, scene):
+    def __init__(self, sku, size, pattern, grout, suffix, texture_location, scene):
         self.sku = sku
         self.size_x, self.size_y = self.extract_size(size)
         self.pattern = pattern
         self.grout = grout
         self.suffix = suffix
-        self.filenames = []
         self.scene = scene
-        self.texture_count, self.filenames = self.count_textures(image_location)  # Automatically count textures
-        self.brightness = self.calculate_brightness(self.filenames)
-        self.lightstrength = self.map_brightness_to_light_strength(self.brightness, light_min=4, light_max=13)
+        self.textures = self.collect_textures(texture_location)
 
     def extract_size(self, size):
         size = size.replace(' x ', 'x').replace(',', '.')
@@ -28,44 +25,31 @@ class Floordata():
         else:
             return None, None
 
-    def count_textures(self, image_location):
-        texture_count = 0
-        for file in os.listdir(image_location):
+    def collect_textures(self, texture_location):
+        file_locations = []
+        for file in os.listdir(texture_location):
             if self.sku in file:
-                texture_count += 1
-                self.filenames.append(file)
-                # print(f"Found texture: {file}")
-        return int(texture_count)
+                file_path = os.path.join(texture_location, file)
+                file_locations.append(file_path)
+                # print(f"Found texture: {file_path}")
+        return file_locations
     
-    def calculate_brightness(filenames):
-        if filenames == 0:
-            image_path = ''
-        else:
-            image_path = filenames[0]
-        
-        img = Image.open(image_path).convert('L')  # Convert to grayscale
-        stat = ImageStat.Stat(img)
-        return stat.mean[0]  # Average brightness
-
-    def map_brightness_to_light_strength(brightness, light_min, light_max):
-        normalized_brightness = brightness / 255 # Normalize brightness from 0 to 255 to 0 to 1
-        return light_max - normalized_brightness * (light_max - light_min) # Inverse mapping: lower brightness -> higher light strength
-
 class BlenderFloorProcessor:
-    def __init__(self, camera_name, image_location, output_location):
-        self.camera_name = camera_name
-        self.image_location = image_location
+    def __init__(self, texture_location, output_location, min_light, max_light):
+        self.camera_name = 'MAIN_CAMERA'
+        self.texture_location = texture_location
         self.output_location = output_location
+        self.min_light = min_light
+        self.max_light = max_light
 
     def set_pattern(self, floor):
-        obj_regular = 'Standard_4.0+'
-        mat_regular = 'Floor_MultiTexture_Sherwood-Oak'
-        obj_herringbone = 'Herringbone'
-        mat_herringbone = 'Floor_MultiTexture_Inca-Carpenter-Oak'
+        obj_regular = 'FLOOR_STANDARD'
+        obj_herringbone = 'FLOOR_HERRINGBONE'
+        floor_mat = 'FLOOR_MATERIAL'
         if floor.pattern in writing_variations['laminate_regular'] or '':
-            return obj_regular, mat_regular
+            return obj_regular, floor_mat
         elif floor.pattern in writing_variations['laminate_herringbone']:
-            return obj_herringbone, mat_herringbone
+            return obj_herringbone, floor_mat
         else:
             print(f'PATTERN FOR {floor.sku} NOT RECOGNIZED')
 
@@ -86,14 +70,14 @@ class BlenderFloorProcessor:
             "Image Texture.008"
         ]
 
-        # Ensure there are enough filenames to match the nodes
-        if len(floor.filenames) > len(node_names):
-            print(f"More filenames than expected nodes. Some textures won't be used.")
-            floor.filenames = floor.filenames[:len(node_names)]
+        # Ensure there are enough textures to match the nodes
+        if len(floor.textures) > len(node_names):
+            print(f"{floor.sku} contains {len(floor.textures)} textures, skipping {len(floor.textures)-8} texture(s)")
+            floor.textures = floor.textures[:len(node_names)]
 
         # Loop over filenames and corresponding node names
-        for filename, node_name in zip(floor.filenames, node_names):
-            image_path = os.path.join(self.image_location, filename)
+        for filename, node_name in zip(floor.textures, node_names):
+            image_path = os.path.join(self.texture_location, filename)
             node = nodes.get(node_name)
             if node and node.type == 'TEX_IMAGE':
                 if os.path.exists(image_path):
@@ -117,9 +101,9 @@ class BlenderFloorProcessor:
             return
 
         # Connect the last texture node to the Reroute node after all textures are set
-        if len(floor.filenames) > 0 and len(multi_texture_node.outputs) >= len(floor.filenames):
+        if len(floor.textures) > 0 and len(multi_texture_node.outputs) >= len(floor.textures):
             link = mat.node_tree.links.new
-            link(multi_texture_node.outputs[len(floor.filenames) - 1], reroute_node.inputs[0])
+            link(multi_texture_node.outputs[len(floor.textures) - 1], reroute_node.inputs[0])
         else:
             print("Not enough outputs in MultiTexture node or no textures specified.")
 
@@ -136,8 +120,8 @@ class BlenderFloorProcessor:
             print(f"Object '{object_name}' not found or it doesn't have a 'GeometryNodes' modifier.")
 
     def set_objects(self, floor):
-        regular_obj = bpy.data.objects.get('Standard_4.0+')
-        herringbone_obj = bpy.data.objects.get('Herringbone')
+        regular_obj = bpy.data.objects.get('FLOOR_STANDARD')
+        herringbone_obj = bpy.data.objects.get('FLOOR_HERRINGBONE')
         if floor.pattern in writing_variations['laminate_regular'] or '':
             regular_obj.hide_render = False
             herringbone_obj.hide_render = True
@@ -154,28 +138,44 @@ class BlenderFloorProcessor:
         else:
             print(f'{self.camera_name} not found or is not a camera object.')
 
-    def set_light(self, floor): # Update the light strength in Blender
+    def calculate_brightness(self, floor):
+        image_path = floor.textures[0]
+        img = Image.open(image_path).convert('L')  # Convert to grayscale
+        stat = ImageStat.Stat(img)
+        brightness = stat.mean[0]  # Average brightness
+
+        # Map brightness to light strength
+        normalized_brightness = brightness / 255
+        light_strength = self.max_light - normalized_brightness * (self.max_light - self.min_light)
+        return light_strength
+
+    def set_light(self, light_strength): # Update the light strength in Blender
         light_object = bpy.data.objects.get('MAIN_LIGHT')
         if light_object and light_object.type == 'LIGHT':
-            light_object.data.energy = floor.light_strength
-            print(f"Set MAIN_LIGHT strength to {floor.light_strength} based on texture brightness {floor.brightness}")
+            light_object.data.energy = light_strength
+            print(f"Set MAIN_LIGHT strength to {light_strength}")
         else:
             print("MAIN_LIGHT not found or is not a light object.")
 
     def render_scene(self, floor):
         self.set_camera()
         full_output_path = os.path.join(self.output_location, floor.sku + floor.suffix)
+        print(f'Rendering {floor.sku}')
         bpy.context.scene.render.filepath = full_output_path
         bpy.ops.render.render(write_still=True)
-        # print(f'Rendering {floor.sku} to {full_output_path}')
 
     def batch_process(self, render_floordata):
+        total_images = len(render_floordata)
+        images_rendered = 0
         for floor in render_floordata:
             self.set_textures(floor)
             self.set_size(floor)
             self.set_objects(floor)
-            self.set_light(floor)
+            light_strength = self.calculate_brightness(floor)
+            self.set_light(light_strength)
             self.render_scene(floor)
+            images_rendered += 1
+            print(f'\nPROGRESS: {(images_rendered/total_images)*100}%\n')
 
 writing_variations = {
     'sku': ['SKU', 'product', 'article', 'skus'],
