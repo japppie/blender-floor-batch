@@ -107,15 +107,32 @@ class BlenderFloorProcessor:
         else:
             print("Not enough outputs in MultiTexture node or no textures specified.")
 
-    def set_size(self, floor):
+    def set_planks(self, floor):
         object_name, material_name = self.set_pattern(floor)
         obj = bpy.data.objects.get(object_name)
+        print(f'Setting planks for {floor.sku}, pattern: {floor.pattern}, grout: {floor.grout}')
         if obj and 'GeometryNodes' in obj.modifiers:
-            modifier = obj.modifiers["GeometryNodes"]
-            modifier["Input_2"] = floor.size_x / 100
-            modifier["Socket_0"] = floor.size_x / 100
-            modifier["Input_3"] = floor.size_y / 100
-            modifier["Socket_3"] = floor.size_y / 100
+            if object_name == 'FLOOR_STANDARD':
+                modifier = obj.modifiers["GeometryNodes"]
+                modifier["Input_2"] = modifier["Socket_0"] = float(floor.size_x) / 100
+                modifier["Input_3"] = modifier["Socket_3"] = float(floor.size_y) / 100
+                print(f'{floor.sku} floor grout is {floor.grout}')
+                if floor.grout in writing_variations['2v']:
+                    modifier["Input_5"] = float(0) # along the short side
+                    modifier["Input_6"] = 0.0005 # along the tall side
+                elif floor.grout in writing_variations['4v']:
+                    modifier["Input_5"] = modifier["Input_6"] = 0.0005 # along both sides
+                else:
+                    modifier["Input_5"] = modifier["Input_6"] = float(0) # along both sides
+            elif object_name == 'FLOOR_HERRINGBONE':
+                print(f'{floor.sku} floor grout is {floor.grout}')
+                modifier = obj.modifiers["GeometryNodes"]
+                modifier["Input_2"] = float(floor.size_x) / 100
+                modifier["Input_3"] = float(floor.size_y) / 100
+                if floor.grout in writing_variations['4v']:
+                    modifier["Input_5"] = 0.0005
+                else:
+                    modifier["Input_5"] = float(0) # along both sides
         else:
             print(f"Object '{object_name}' not found or it doesn't have a 'GeometryNodes' modifier.")
 
@@ -169,7 +186,7 @@ class BlenderFloorProcessor:
         images_rendered = 0
         for floor in render_floordata:
             self.set_textures(floor)
-            self.set_size(floor)
+            self.set_planks(floor)
             self.set_objects(floor)
             light_strength = self.calculate_brightness(floor)
             self.set_light(light_strength)
@@ -185,5 +202,8 @@ writing_variations = {
     'suffix': ['suffix', 'toevoeging', 'bestandsnaam'],
     'scene': ['blendfile', 'blend', 'blender', 'file', 'bestand', 'bestandsnaam', 'filename', 'file name', '.blend'],
     'laminate_regular': ['recht', 'normaal', 'gewoon', 'straight', 'regular'],
-    'laminate_herringbone': ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone']
+    'laminate_herringbone': ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone'],
+    '0v': ['0v', '0 v', '0', '', 'nvt', 'n.v.t.', '-', 'geen'],
+    '2v': ['2v', '2 v', '2', 'lange zijde', 'length', 'lengte' ],
+    '4v': ['4v', '4 v', '4', 'beide', 'rondom' ]
 }

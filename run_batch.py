@@ -1,10 +1,11 @@
 # TODO: Specify the location of the local Git repo:
-github_repo_location = '/Users/gebruiker/Documents/GitHub/blender-floor-batch/'
+github_repo_location = r'C:\Users\Jasper\Documents\GitHub\blender-floor-batch'
 
-import bpy, csv, os, sys
+import bpy, csv, os, sys, importlib
 from PIL import Image, ImageStat
 from collections import defaultdict
 sys.path.append(github_repo_location)
+import utils.floordata
 from utils.floordata import Floordata, BlenderFloorProcessor, writing_variations
 
 def fix_directory(directory):
@@ -16,7 +17,7 @@ def fix_directory(directory):
 github_repo_location = fix_directory(github_repo_location)
 
 # DECLARE VARIABLES
-camera_name = 'MAIN_CAMERA'
+min_light, max_light = 4, 13
 texture_location = github_repo_location + 'textures/'
 output_location = github_repo_location + 'output/'
 csv_location = github_repo_location + 'assets/demo_floors.csv'
@@ -53,11 +54,13 @@ with open(csv_location) as csv_file:
             grout = row[column_names['grout']]
             suffix = row[column_names['suffix']]
             scene = row[column_names['scene']]
+            # Dynamically reload the floordata module before creating Floordata objects
+            importlib.reload(utils.floordata)
             floor_data = Floordata(sku, size, pattern, grout, suffix, texture_location, scene)
             floordata_list.append(floor_data)
 
     for i in floordata_list:
-        if i.texture_count == 0:
+        if len(i.textures) == 0:
             missing_floordata.append(i.sku)
         else:
             render_floordata.append(i)
@@ -72,7 +75,7 @@ for scene_file, floordata_batch in scene_groups.items():
     bpy.ops.wm.open_mainfile(filepath=scene_path)
 
     # Create an instance of the processor if not already created
-    processor = BlenderFloorProcessor(camera_name, texture_location, output_location)
+    processor = BlenderFloorProcessor(texture_location, output_location, min_light, max_light)
 
     # Process the batch of floor data for the current scene
     processor.batch_process(floordata_batch)
