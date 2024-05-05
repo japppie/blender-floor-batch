@@ -1,6 +1,7 @@
 For use in a single Blendfile, import the contents from run.py into the Blender python editor. Make sure to update the path in row 2.
 
-For use in a batch processor, run via terminal/cmd: blender --background --python run_batch.py
+Batch Processor not yet working
+
 
 # Short description
 Set up a render queue for multiple floors in Blender
@@ -18,4 +19,4 @@ Renders 'MAIN_CAMERA'
 
 # TO DO
 Possibly create separate settings file
-Fix batch solution and lighting change
+Fix batch solution

@@ -2,13 +2,14 @@ import os, bpy
 from PIL import Image, ImageStat
 
 class Floordata():
-    def __init__(self, sku, size, pattern, grout, suffix, texture_location, scene):
+    def __init__(self, sku, size, pattern, grout, suffix, texture_location, blendfile, lighting):
         self.sku = sku
         self.size_x, self.size_y = self.extract_size(size)
         self.pattern = pattern
         self.grout = grout
         self.suffix = suffix
-        self.scene = scene
+        self.blendfile = blendfile
+        self.min_light, self.max_light = self.extract_lighting(lighting)
         self.textures = self.collect_textures(texture_location)
 
     def extract_size(self, size):
@@ -33,14 +34,25 @@ class Floordata():
                 file_locations.append(file_path)
                 # print(f"Found texture: {file_path}")
         return file_locations
+
+    def extract_lighting(self, lighting):
+        delimiters = [', ', ',', '. ', '.', ' - ', ' -', '- ', '-', ' ']
+        if lighting in writing_variations['empty']:
+            return None, None
+        else:
+            for delimiter in delimiters:
+                if delimiter in lighting:
+                    split_lightning = lighting.split(delimiter)
+                    return float(split_lightning[0]), float(split_lightning[1])
+            print(f'Cant process lighting input: {lighting}, returning None')
+            return None, None
     
 class BlenderFloorProcessor:
-    def __init__(self, texture_location, output_location, min_light, max_light):
+    def __init__(self, texture_location, output_location, blend_filename):
         self.camera_name = 'MAIN_CAMERA'
         self.texture_location = texture_location
         self.output_location = output_location
-        self.min_light = min_light
-        self.max_light = max_light
+        self.blend_filename = blend_filename
 
     def set_pattern(self, floor):
         obj_regular = 'FLOOR_STANDARD'
@@ -110,13 +122,12 @@ class BlenderFloorProcessor:
     def set_planks(self, floor):
         object_name, material_name = self.set_pattern(floor)
         obj = bpy.data.objects.get(object_name)
-        print(f'Setting planks for {floor.sku}, pattern: {floor.pattern}, grout: {floor.grout}')
+        print(f'SETTINGS FOR {floor.sku}, PATTERN: {floor.pattern}, GROUT: {floor.grout}')
         if obj and 'GeometryNodes' in obj.modifiers:
             if object_name == 'FLOOR_STANDARD':
                 modifier = obj.modifiers["GeometryNodes"]
                 modifier["Input_2"] = modifier["Socket_0"] = float(floor.size_x) / 100
                 modifier["Input_3"] = modifier["Socket_3"] = float(floor.size_y) / 100
-                print(f'{floor.sku} floor grout is {floor.grout}')
                 if floor.grout in writing_variations['2v']:
                     modifier["Input_5"] = float(0) # along the short side
                     modifier["Input_6"] = 0.0005 # along the tall side
@@ -125,7 +136,6 @@ class BlenderFloorProcessor:
                 else:
                     modifier["Input_5"] = modifier["Input_6"] = float(0) # along both sides
             elif object_name == 'FLOOR_HERRINGBONE':
-                print(f'{floor.sku} floor grout is {floor.grout}')
                 modifier = obj.modifiers["GeometryNodes"]
                 modifier["Input_2"] = float(floor.size_x) / 100
                 modifier["Input_3"] = float(floor.size_y) / 100
@@ -156,23 +166,29 @@ class BlenderFloorProcessor:
             print(f'{self.camera_name} not found or is not a camera object.')
 
     def calculate_brightness(self, floor):
-        image_path = floor.textures[0]
-        img = Image.open(image_path).convert('L')  # Convert to grayscale
-        stat = ImageStat.Stat(img)
-        brightness = stat.mean[0]  # Average brightness
-
-        # Map brightness to light strength
-        normalized_brightness = brightness / 255
-        light_strength = self.max_light - normalized_brightness * (self.max_light - self.min_light)
-        return light_strength
-
-    def set_light(self, light_strength): # Update the light strength in Blender
-        light_object = bpy.data.objects.get('MAIN_LIGHT')
-        if light_object and light_object.type == 'LIGHT':
-            light_object.data.energy = light_strength
-            print(f"Set MAIN_LIGHT strength to {light_strength}")
+        if floor.min_light == None:
+            return None
         else:
-            print("MAIN_LIGHT not found or is not a light object.")
+            image_path = floor.textures[0]
+            img = Image.open(image_path).convert('L')  # Convert to grayscale
+            stat = ImageStat.Stat(img)
+            brightness = stat.mean[0]  # Average brightness
+
+            # Map brightness to light strength
+            normalized_brightness = brightness / 255
+            light_strength = floor.max_light - normalized_brightness * (floor.max_light - floor.min_light)
+            return light_strength
+
+    def set_light(self, floor, light_strength): # Update the light strength in Blender
+        if light_strength == None:
+            print(f'NO LIGHTING SETTINGS FOR {floor.sku}, USING DEFAULT VALUES')
+        else:
+            light_object = bpy.data.objects.get('MAIN_LIGHT')
+            if light_object and light_object.type == 'LIGHT':
+                light_object.data.energy = light_strength
+                print(f"Set MAIN_LIGHT strength to {light_strength}")
+            else:
+                print("MAIN_LIGHT not found or is not a light object.")
 
     def render_scene(self, floor):
         self.set_camera()
@@ -182,17 +198,24 @@ class BlenderFloorProcessor:
         bpy.ops.render.render(write_still=True)
 
     def batch_process(self, render_floordata):
-        total_images = len(render_floordata)
+        total_images = 0
+        for i in render_floordata:
+            if i.blendfile == self.blend_filename:
+                total_images += 1
         images_rendered = 0
+
         for floor in render_floordata:
-            self.set_textures(floor)
-            self.set_planks(floor)
-            self.set_objects(floor)
-            light_strength = self.calculate_brightness(floor)
-            self.set_light(light_strength)
-            self.render_scene(floor)
-            images_rendered += 1
-            print(f'\nPROGRESS: {(images_rendered/total_images)*100}%\n')
+            if floor.blendfile == self.blend_filename:
+                self.set_textures(floor)
+                self.set_planks(floor)
+                self.set_objects(floor)
+                light_strength = self.calculate_brightness(floor)
+                self.set_light(floor, light_strength)
+                self.render_scene(floor)
+                images_rendered += 1
+                print(f'\nPROGRESS: {(images_rendered/total_images)*100}%\n')
+            else:
+                print(f'Skipping {floor.sku} because it belongs to: {floor.blendfile}.')
 
 writing_variations = {
     'sku': ['SKU', 'product', 'article', 'skus'],
@@ -200,10 +223,12 @@ writing_variations = {
     'pattern': ['pattern', 'patroon', 'methode', 'legmethode', 'leg methode'],
     'grout': ['grout', 'voeg', 'groef', '2v', '4v', '2v/4v', 'voeg/groef', 'groef/voeg'],
     'suffix': ['suffix', 'toevoeging', 'bestandsnaam'],
-    'scene': ['blendfile', 'blend', 'blender', 'file', 'bestand', 'bestandsnaam', 'filename', 'file name', '.blend'],
+    'blendfile': ['blendfile', 'blend', 'blender', 'file', 'bestand', 'bestandsnaam', 'filename', 'file name', '.blend'],
+    'lighting': ['lighting', 'belichting', 'light', 'lightning', 'licht'],
     'laminate_regular': ['recht', 'normaal', 'gewoon', 'straight', 'regular'],
     'laminate_herringbone': ['visgraat', 'vis graat', 'visgraad', 'vis graad', 'herringbone', 'herring bone'],
     '0v': ['0v', '0 v', '0', '', 'nvt', 'n.v.t.', '-', 'geen'],
     '2v': ['2v', '2 v', '2', 'lange zijde', 'length', 'lengte' ],
-    '4v': ['4v', '4 v', '4', 'beide', 'rondom' ]
+    '4v': ['4v', '4 v', '4', 'beide', 'rondom' ],
+    'empty': ['', ' ', 'nvt', 'n.v.t.', '-', 'None', None]
 }

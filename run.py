@@ -16,10 +16,28 @@ def fix_directory(directory):
 github_repo_location = fix_directory(github_repo_location)
 
 # DECLARE VARIABLES
-min_light, max_light = 4, 13
 texture_location = github_repo_location + 'textures/'
 output_location = github_repo_location + 'output/'
 csv_location = github_repo_location + 'assets/demo_floors.csv'
+
+# CHECK DIRECTORIES
+if not os.path.exists(github_repo_location) or not os.path.isdir(github_repo_location):
+    raise ValueError("Invalid GitHub repo location")
+
+if not os.path.exists(csv_location) or not os.path.isfile(csv_location):
+    raise ValueError("Invalid CSV file location")
+
+if not os.path.exists(texture_location) or not os.path.isdir(texture_location):
+    raise ValueError("Invalid texture location")
+
+if not os.path.exists(output_location) or not os.path.isdir(output_location):
+    raise ValueError("Invalid output location")
+
+def get_blend_filename():
+    return os.path.basename(bpy.data.filepath)
+
+blend_filename = get_blend_filename()
+print(f'\nOnly rendering floors belonging to: {blend_filename}\n')
 
 def detect_column_names(header, writing_variations):
     detected_names = {}
@@ -46,10 +64,14 @@ with open(csv_location) as csv_file:
             pattern = row[column_names['pattern']]
             grout = row[column_names['grout']]
             suffix = row[column_names['suffix']]
-            scene = row[column_names['scene']]
+            blendfile = row[column_names['blendfile']]
+            if 'lighting' in column_names:
+                lighting = row[column_names['lighting']]
+            else:
+                lighting = None
             # Dynamically reload the floordata module before creating Floordata objects
             importlib.reload(utils.floordata)
-            floor_data = Floordata(sku, size, pattern, grout, suffix, texture_location, scene)
+            floor_data = Floordata(sku, size, pattern, grout, suffix, texture_location, blendfile, lighting)
             floordata_list.append(floor_data)
 
     for i in floordata_list:
@@ -58,8 +80,10 @@ with open(csv_location) as csv_file:
         else:
             render_floordata.append(i)
 
+
+
 # Initiate Blender
-processor = BlenderFloorProcessor(texture_location, output_location, min_light, max_light)
+processor = BlenderFloorProcessor(texture_location, output_location, blend_filename)
 
 # Start batch render process
 processor.batch_process(render_floordata)
@@ -68,4 +92,4 @@ processor.batch_process(render_floordata)
 print("\n###############################################")
 print("###  Couldn't find the following textures:  ###")
 print("###############################################")
-print(missing_floordata)
+print(missing_floordata, '\n\n')
